@@ -252,7 +252,7 @@ myGLCD.print("Brightness",20,125);
 myGLCD.drawRoundRect(130,10, 230, 80);
 myGLCD.print("somthng",140,55);
 myGLCD.drawRoundRect(130,90, 230, 160);
-myGLCD.print("somthng2",140,125);
+myGLCD.print("timer",140,125);
 byte set=1;
 while(set==1){
 if(myTouch.dataAvailable())
