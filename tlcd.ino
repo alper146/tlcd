@@ -3,17 +3,21 @@
 UTFT myGLCD(ITDB24,A5,A4,A3,A2);
 UTouch myTouch(A1,10,A0,8,9);
 extern uint8_t BigFont[];
+extern uint8_t SmallFont[];
 int x, y;
 char a=1;
-char stCurrent[20]="";
-int stCurrentLen=0;
-char stLast[20]="";
+void button(int x1,int y1,String st,byte prescx,byte prescy);
+void button(int x1,int y1,String st);
 void setup(){
    myGLCD.InitLCD(PORTRAIT);
   myGLCD.clrScr();
   myTouch.InitTouch();
   myTouch.setPrecision(PREC_MEDIUM);
   myGLCD.setFont(BigFont);
+// draw_menu();
+ button(120,160,"Hello World!");
+ while(!button_clicked(120,160,"Hello World!")){}
+ myGLCD.clrScr();
  draw_menu();
 }
 void loop(){
@@ -39,6 +43,10 @@ void loop(){
   }
 
 }
+  union{
+		int32_t value;
+		uint8_t aa[4];
+	} c ;
 void draw_menu(void){
   
  myGLCD.print("Read", CENTER, 55);
@@ -47,7 +55,7 @@ void draw_menu(void){
  myGLCD.drawLine(0, 220, 239, 220);
  myGLCD.print("Settings", CENTER, 275);
 }
-long val=1000001;
+
 
 void read_menu(void){
 myGLCD.clrScr();
@@ -65,6 +73,7 @@ myGLCD.printNumI((val/100000)%10,105,55);
 myGLCD.printNumI(val/1000000,120,55);
 //myGLCD.print(" mg",100,55); */
 a=1;
+
 myGLCD.drawLine(0, 110, 239, 110);
  myGLCD.drawLine(0, 220, 239, 220);
 while(a==1){
@@ -74,67 +83,88 @@ while(a==1){
       myTouch.read();
     x=myTouch.getX();
     y=myTouch.getY();
-         if((x<220)&&(x>110)){
+         
+       
+  if(x>0 and (x<110)){
+       
+     myGLCD.print(" Processing",CENTER,275);
+     Serial.begin(9600);
+         Serial.write(10);
+         
+         delay(5);
+         
+          while(Serial.available()<3){}
+          c.aa[0]=Serial.read();
+          c.aa[1]=Serial.read();
+          c.aa[2]=Serial.read();
+         Serial.end();
+          myGLCD.print("      ",CENTER,55);
+          myGLCD.printNumI(c.value,CENTER,55);
+          myGLCD.print("           ",CENTER,275);
+          myGLCD.print(" Read",CENTER,275);
+         a=1;
+         }
+       else  if((x<220)&&(x>110)){
          myGLCD.clrScr();
          draw_menu();
          a=0;
         
          }
-   else if((x<220)){
-       
-     myGLCD.print(" Processing",CENTER,275);
-         
-         a=1;
-         }
+ 
      }
 }
 
 }
 void calibration_menu(void){
 myGLCD.clrScr();
+Serial.begin(9600);
+Serial.write(20);
+Serial.end();
 set_standart(1);
 set_standart(2);
 draw_menu();
              
 }
 void set_standart(byte r){
-myGLCD.print("Set Standart ",CENTER,55);
-myGLCD.printNumI(r,200,55);
+  myGLCD.clrScr();
+myGLCD.print("Set Standart",CENTER,35);
+myGLCD.printNumI(r,CENTER,55);
 myGLCD.setColor(255,255,255);
 myGLCD.setBackColor(0,0,255);
 myGLCD.print("1 mg",CENTER,80);
-myGLCD.drawRoundRect(10, 130, 40, 170);
-myGLCD.drawRoundRect(10, 180, 40, 220);
+myGLCD.drawRoundRect(10, 130, 70, 190);
+myGLCD.drawRoundRect(10, 200, 70, 260);
 //aşağı yönlü ok
-myGLCD.drawLine(15,190,35,190);
-myGLCD.drawLine(15,190,25,210);
-myGLCD.drawLine(35,190,25,210);
+myGLCD.drawLine(20,210,60,210);
+myGLCD.drawLine(20,210,40,250);
+myGLCD.drawLine(60,210,40,250);
 // yukarı yönlü ok
-myGLCD.drawLine(15,160,35,160);
-myGLCD.drawLine(15,160,25,140);
-myGLCD.drawLine(35,160,25,140);
-myGLCD.drawRoundRect(80, 140,  160 , 190);
-myGLCD.print("Set",CENTER,160);
-char set=1;
+myGLCD.drawLine(20,180,60,180);
+myGLCD.drawLine(20,180,40,140);
+myGLCD.drawLine(60,180,40,140);
+//myGLCD.drawRoundRect(80, 140,  160 , 190);
+button(120,165,"set");
 char swtch=1;
+byte set=1;
 while(set==1){
 
   if(myTouch.dataAvailable())
      {
        myTouch.read();
-    x=myTouch.getX();
-    y=myTouch.getY();
-     if((y<40)&&(10<y)){
-             if((x<170)&&(130<x)){
+    y=myTouch.getX();
+    x=myTouch.getY();
+     y=320-y;
+     if((x<70)&&(10<x)){
+             if((y<260)&&(200<y)){
                if(swtch==0){
                swtch=6;}
                else{swtch--;}
              }
-              if((x<220)&&(180<x)){
+              if((y<190)&&(130<y)){
                if(swtch==6){
                swtch=0;}
                else{swtch++;}
-             }
+             }delay(80);
               myGLCD.print("        ",CENTER,80);
                switch (swtch)
                {case 0: 
@@ -161,26 +191,42 @@ while(set==1){
                
                   
                          }
-                         delay(50);
+                         
              }
  
- if((y<160)&&(80<y)){
-       if((x<190)&&(140<x)){set=2;myGLCD.print("Done",CENTER,160); }
-             }
+ if((y<180)&&(150<y)){
+       if((x<150)&&(90<x)){set=2; button(120,165,"Done");
+         myGLCD.clrScr();    
+   Serial.begin(9600);  
+   Serial.write(swtch);
+Serial.end(); 
+     }        }
      }
 }
-myGLCD.clrScr();
+set=2;
 myGLCD.print(" Place Standart ",CENTER,60);
-myGLCD.print("Here is same instructions: ....",CENTER,100);
-myGLCD.drawRoundRect(80, 220,  160 , 280);
-myGLCD.print("Ready",CENTER,250);
+myGLCD.print("Instructions:",LEFT,100);
+//myGLCD.drawRoundRect(80, 220,  160 , 280);
+//myGLCD.print("Ready",CENTER,250);
+button(120,250,"Ready");
  while(set==2){
  if(myTouch.dataAvailable())
      { myTouch.read();
     y=myTouch.getX();
     x=myTouch.getY();
  if((y<100)&&(40<y)){
-       if((x<160)&&(80<x)){set=1;myGLCD.print("     ",CENTER,250); myGLCD.print("OK",CENTER,250);  }
+       if((x<160)&&(80<x)){set=1;myGLCD.setColor(0,0,0); myGLCD.fillRect(60,230,180,290);
+     myGLCD.setColor(255,255,255);  button(120,250,"Waiting"); 
+   Serial.begin(9600);  
+     while(Serial.available()<3){}
+          c.aa[0]=Serial.read();
+          c.aa[1]=Serial.read();
+          c.aa[2]=Serial.read();
+          Serial.end();myGLCD.setColor(0,0,0);myGLCD.fillRect(40,230,200,290);
+     myGLCD.setColor(255,255,255);  button(120,250,"OK");
+       myGLCD.printNumI(c.value,CENTER,150);
+       
+     }
              }}}
              delay(50);
               while(set==1){
@@ -196,48 +242,110 @@ myGLCD.print("Ready",CENTER,250);
 
 void settings_menu(void){
 myGLCD.clrScr();
-byte r=1;
-myGLCD.print("Number of Readings ",CENTER,55);
-myGLCD.printNumI(r,CENTER,70);
-myGLCD.drawRoundRect(10, 130, 40, 170);
-myGLCD.drawRoundRect(10, 180, 40, 220);
-//aşağı yönlü ok
-myGLCD.drawLine(15,190,35,190);
-myGLCD.drawLine(15,190,25,210);
-myGLCD.drawLine(35,190,25,210);
-// yukarı yönlü ok
-myGLCD.drawLine(15,160,35,160);
-myGLCD.drawLine(15,160,25,140);
-myGLCD.drawLine(35,160,25,140);
-myGLCD.drawRoundRect(80, 140,  160 , 190);
-myGLCD.print("Set",CENTER,160);
-char set=1;
+myGLCD.setFont(SmallFont);
+myGLCD.drawRoundRect(10,10, 110, 80);
+myGLCD.print("Number of",20,45);
+myGLCD.print(" Readings",20,55);
+myGLCD.drawRoundRect(10,90, 110, 160);
+myGLCD.print("Brightness",20,125);
 
+myGLCD.drawRoundRect(130,10, 230, 80);
+myGLCD.print("somthng",140,55);
+myGLCD.drawRoundRect(130,90, 230, 160);
+myGLCD.print("somthng2",140,125);
+byte set=1;
 while(set==1){
+if(myTouch.dataAvailable())
+     {
+       myTouch.read();
+    y=myTouch.getX();
+    x=myTouch.getY();
+    y=320-y;
+     if((x<110)&&(10<x)){
+             if((y<80)&&(10<y)){set=2;
+             }
+     }}}
+myGLCD.setFont(BigFont);
+myGLCD.clrScr();
+byte r=1;
+myGLCD.print("Number of ",CENTER,35);
+myGLCD.print("Readings ",CENTER,55);
+myGLCD.printNumI(r,CENTER,80);
+myGLCD.drawRoundRect(10, 130, 70, 190);
+myGLCD.drawRoundRect(10, 200, 70, 260);
+//aşağı yönlü ok
+myGLCD.drawLine(20,210,60,210);
+myGLCD.drawLine(20,210,40,250);
+myGLCD.drawLine(60,210,40,250);
+// yukarı yönlü ok
+myGLCD.drawLine(20,180,60,180);
+myGLCD.drawLine(20,180,40,140);
+myGLCD.drawLine(60,180,40,140);
+//myGLCD.drawRoundRect(80, 140,  160 , 190);
+button(120,165,"set");
+ set=1;
+Serial.begin(9600);
+Serial.write(30);
+Serial.end();
+while(set==1){
+  
 
   if(myTouch.dataAvailable())
      {
-       myTouch.read();
-    x=myTouch.getX();
-    y=myTouch.getY();
-     if((y<40)&&(10<y)){
-             if((x<170)&&(130<x)){
+        myTouch.read();
+    y=myTouch.getX();
+    x=myTouch.getY();
+     y=320-y;
+     if((x<70)&&(10<x)){
+             if((y<260)&&(200<y)){
                if(r==0){
-               r=256;}
+               r=255;}
                else{r--;}
              }
-              if((x<220)&&(180<x)){
-               if(r==256){
+              if((y<190)&&(130<y)){
+                if(r==255){
                r=0;}
                else{r++;}
-             }  myGLCD.print("        ",CENTER,70);
-            myGLCD.printNumI(r,CENTER,70);}
-             
-if((y<160)&&(80<y)){
-       if((x<190)&&(140<x)){set=2;myGLCD.print("Done",CENTER,160); }
-           
-          myGLCD.clrScr();
+             }delay(80);
+ myGLCD.print("        ",CENTER,80);
+            myGLCD.printNumI(r,CENTER,80);
+         }
+              if((y<180)&&(150<y)){
+       if((x<150)&&(90<x)){set=2; button(120,165,"Done");
+       myGLCD.clrScr();Serial.begin(9600); Serial.write(r); Serial.end(); 
              draw_menu();
-           break;  }
+           break; 
+     }
            
-}}}
+           }
+           
+}}
+}
+
+void button(int x1,int y1,String st){
+
+myGLCD.drawRoundRect(x1-2-(9*st.length()),y1-15,x1+2+(9*st.length()),y1+15);
+myGLCD.print(st,x1-(8*st.length()),y1-10);
+
+}
+void button(int x1,int y1,String st,byte prescx=1,byte prescy=1){
+
+myGLCD.drawRoundRect(x1-2-(prescx*7*st.length()),y1*prescy-15,x1+2+(prescx*7*st.length()),prescy*y1+15);
+myGLCD.print(st,x1-(6*st.length()),y1-10);
+
+}
+
+boolean button_clicked(int x1,int y1,String st){
+if(myTouch.dataAvailable())
+     {
+       myTouch.read();
+    y=myTouch.getX();
+    x=myTouch.getY();
+   y=320-y;
+   if((y<(y1+15))&&((y1-15)<y)){
+               if((x<(x1+2+(9*st.length())))&&(x1-2-(9*st.length())<x)){return true;}
+                     } 
+   }
+   return false;
+
+}
